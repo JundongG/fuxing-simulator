@@ -3,10 +3,12 @@ Page({
   data: {
     scene: null,
     from: 'preset',
+    character: null,
   },
 
   onLoad(options) {
-    const scene = getApp().globalData.currentScene
+    const app = getApp()
+    const scene = app.globalData.currentScene
     if (!scene) {
       wx.redirectTo({ url: '/pages/index/index' })
       return
@@ -14,17 +16,16 @@ Page({
     this.setData({
       scene,
       from: options.from || 'preset',
+      character: app.globalData.selectedChar || null,
     })
   },
 
-  // 进入驾驶
   onStartDrive() {
     wx.navigateTo({
       url: '/pages/drive/drive',
     })
   },
 
-  // 返回首页
   onBack() {
     wx.navigateBack()
   },

@@ -24,5 +24,7 @@ App({
     screenWidth: 375,
     screenHeight: 812,
     pixelRatio: 2,
+    selectedChar: null,
+    currentScene: null,
   }
 })

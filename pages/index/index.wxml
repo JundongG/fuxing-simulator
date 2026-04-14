@@ -3,8 +3,51 @@
   <!-- 头部 -->
   <view class="header">
     <view class="logo">🚄</view>
-    <view class="title">复兴号模拟驾驶</view>
-    <view class="subtitle">一句话，开启你的高铁之旅</view>
+    <view class="title">高铁五七班</view>
+    <view class="subtitle">选一个小司机，开启你的高铁之旅</view>
+  </view>
+
+  <!-- 角色选择 -->
+  <view class="section-title">👤 选择小司机</view>
+  <scroll-view class="char-scroll" scroll-x enable-flex>
+    <view
+      class="char-card {{selectedChar && selectedChar.id === item.id ? 'active' : ''}}"
+      wx:for="{{characters}}"
+      wx:key="id"
+      bindtap="onSelectChar"
+      data-char="{{item}}"
+    >
+      <!-- CSS绘制卡通头像 -->
+      <view class="char-avatar" style="background: {{item.bgColor}};">
+        <view class="avatar-face">
+          <!-- 头发 -->
+          <view class="hair hair-{{item.id}}"></view>
+          <!-- 脸 -->
+          <view class="face" style="background: {{item.skinColor}};">
+            <!-- 眼睛 -->
+            <view class="eyes">
+              <view class="eye"></view>
+              <view class="eye"></view>
+            </view>
+            <!-- 嘴巴 -->
+            <view class="mouth"></view>
+            <!-- 腮红 -->
+            <view class="blush left"></view>
+            <view class="blush right"></view>
+          </view>
+          <!-- 衣服 -->
+          <view class="shirt" style="background: {{item.shirtColor}};"></view>
+        </view>
+      </view>
+      <view class="char-name">{{item.name}}</view>
+      <view class="char-eng">{{item.englishName}}</view>
+      <view class="char-tag" style="background: {{item.color}}; color: #fff;">{{item.tag}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 选中角色描述 -->
+  <view class="char-desc" wx:if="{{selectedChar}}">
+    <text class="char-desc-text">{{selectedChar.desc}}</text>
   </view>
 
   <!-- AI输入区 -->

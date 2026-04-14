@@ -36,7 +36,236 @@
   margin-top: 8rpx;
 }
 
-/* AI输入区 */
+/* ===== 角色选择 ===== */
+.char-scroll {
+  white-space: nowrap;
+  padding: 10rpx 0;
+}
+
+.char-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 200rpx;
+  margin-right: 24rpx;
+  padding: 20rpx 10rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border: 3rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.char-card.active {
+  border-color: #4fc3f7;
+  background: rgba(79, 195, 247, 0.12);
+  transform: scale(1.05);
+  box-shadow: 0 0 30rpx rgba(79, 195, 247, 0.3);
+}
+
+.char-card:active {
+  transform: scale(0.95);
+}
+
+/* 卡通头像容器 */
+.char-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.avatar-face {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* 脸 */
+.face {
+  position: absolute;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  left: 50%;
+  top: 15rpx;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+/* 眼睛 */
+.eyes {
+  position: absolute;
+  top: 28rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16rpx;
+}
+
+.eye {
+  width: 10rpx;
+  height: 12rpx;
+  background: #333;
+  border-radius: 50%;
+}
+
+/* 嘴巴 */
+.mouth {
+  position: absolute;
+  bottom: 16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14rpx;
+  height: 8rpx;
+  border-bottom: 3rpx solid #e57373;
+  border-radius: 0 0 10rpx 10rpx;
+}
+
+/* 腮红 */
+.blush {
+  position: absolute;
+  width: 12rpx;
+  height: 8rpx;
+  background: rgba(255, 138, 128, 0.4);
+  border-radius: 50%;
+  top: 38rpx;
+}
+
+.blush.left { left: 8rpx; }
+.blush.right { right: 8rpx; }
+
+/* 头发 */
+.hair {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+/* 男孩1 — 短发 */
+.hair-boy1 {
+  width: 86rpx;
+  height: 35rpx;
+  background: #5d4037;
+  border-radius: 40rpx 40rpx 0 0;
+  top: 6rpx;
+}
+
+/* 男孩2 — 分头 */
+.hair-boy2 {
+  width: 86rpx;
+  height: 32rpx;
+  background: #3e2723;
+  border-radius: 40rpx 40rpx 0 0;
+  top: 6rpx;
+}
+
+.hair-boy2::after {
+  content: '';
+  position: absolute;
+  width: 2rpx;
+  height: 20rpx;
+  background: #3e2723;
+  left: 30rpx;
+  top: 20rpx;
+}
+
+/* 女孩1 — 双马尾 */
+.hair-girl1 {
+  width: 86rpx;
+  height: 32rpx;
+  background: #4e342e;
+  border-radius: 40rpx 40rpx 0 0;
+  top: 6rpx;
+}
+
+.hair-girl1::before,
+.hair-girl1::after {
+  content: '';
+  position: absolute;
+  width: 16rpx;
+  height: 40rpx;
+  background: #4e342e;
+  border-radius: 0 0 10rpx 10rpx;
+  top: 26rpx;
+}
+
+.hair-girl1::before { left: -4rpx; }
+.hair-girl1::after { right: -4rpx; }
+
+/* 女孩2 — 长发 */
+.hair-girl2 {
+  width: 96rpx;
+  height: 40rpx;
+  background: #1a237e;
+  border-radius: 40rpx 40rpx 0 0;
+  top: 4rpx;
+}
+
+.hair-girl2::before,
+.hair-girl2::after {
+  content: '';
+  position: absolute;
+  width: 14rpx;
+  height: 50rpx;
+  background: #1a237e;
+  border-radius: 0 0 8rpx 8rpx;
+  top: 30rpx;
+}
+
+.hair-girl2::before { left: 2rpx; }
+.hair-girl2::after { right: 2rpx; }
+
+/* 衣服 */
+.shirt {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90rpx;
+  height: 35rpx;
+  border-radius: 45rpx 45rpx 0 0;
+  z-index: 1;
+}
+
+/* 角色文字 */
+.char-name {
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: bold;
+  margin-top: 12rpx;
+}
+
+.char-eng {
+  font-size: 20rpx;
+  color: #78909c;
+  margin-top: 2rpx;
+}
+
+.char-tag {
+  font-size: 18rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  margin-top: 8rpx;
+}
+
+.char-desc {
+  text-align: center;
+  padding: 16rpx 20rpx;
+  margin-top: 10rpx;
+}
+
+.char-desc-text {
+  font-size: 24rpx;
+  color: #b0bec5;
+}
+
+/* ===== AI输入区 ===== */
 .ai-section {
   margin: 40rpx 0;
 }

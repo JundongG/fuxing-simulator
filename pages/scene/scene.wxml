@@ -9,6 +9,24 @@
     <view class="cover-icon">🚄</view>
   </view>
 
+  <!-- 角色信息条 -->
+  <view class="char-bar" wx:if="{{character}}">
+    <view class="char-bar-avatar" style="background: {{character.bgColor}};">
+      <view class="mini-face" style="background: {{character.skinColor}};">
+        <view class="mini-eyes">
+          <view class="mini-eye"></view>
+          <view class="mini-eye"></view>
+        </view>
+      </view>
+      <view class="mini-shirt" style="background: {{character.shirtColor}};"></view>
+    </view>
+    <view class="char-bar-info">
+      <text class="char-bar-name">{{character.name}} · {{character.englishName}}</text>
+      <text class="char-bar-role">本次小司机</text>
+    </view>
+    <view class="char-bar-badge" style="background: {{character.color}};">{{character.tag}}</view>
+  </view>
+
   <!-- 场景信息 -->
   <view class="scene-info">
     <view class="scene-title">{{scene.title}}</view>

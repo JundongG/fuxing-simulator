@@ -22,6 +22,19 @@
       <view class="hud-item">里程 {{mileage}}km</view>
       <view class="hud-item">得分 {{score}}</view>
     </view>
+    <!-- 小司机头像 -->
+    <view class="hud-char" wx:if="{{character}}">
+      <view class="hud-char-avatar" style="background: {{character.bgColor}};">
+        <view class="hud-face" style="background: {{character.skinColor}};">
+          <view class="hud-eyes">
+            <view class="hud-eye"></view>
+            <view class="hud-eye"></view>
+          </view>
+        </view>
+        <view class="hud-shirt" style="background: {{character.shirtColor}};"></view>
+      </view>
+      <text class="hud-char-name">{{character.name}}</text>
+    </view>
   </view>
 
   <!-- 信号灯 -->

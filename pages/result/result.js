@@ -4,10 +4,12 @@ Page({
     result: null,
     grade: '',
     gradeColor: '',
+    character: null,
   },
 
   onLoad() {
     const result = getApp().globalData.lastResult
+    const char = getApp().globalData.selectedChar
     if (!result) {
       wx.redirectTo({ url: '/pages/index/index' })
       return
@@ -15,7 +17,7 @@ Page({
 
     // 评级
     const { grade, color } = this.calcGrade(result.score)
-    this.setData({ result, grade, gradeColor: color })
+    this.setData({ result, grade, gradeColor: color, character: char || null })
 
     // 保存成绩
     this.saveScore(result)

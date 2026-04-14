@@ -27,6 +27,66 @@
   color: #fff;
 }
 
+/* 结果页角色 */
+.result-char {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.result-char-avatar {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+.rc-face {
+  position: absolute;
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  left: 50%;
+  top: 3rpx;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.rc-eyes {
+  position: absolute;
+  top: 11rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6rpx;
+}
+
+.rc-eye {
+  width: 4rpx;
+  height: 5rpx;
+  background: #333;
+  border-radius: 50%;
+}
+
+.rc-shirt {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 42rpx;
+  height: 18rpx;
+  border-radius: 21rpx 21rpx 0 0;
+  z-index: 1;
+}
+
+.result-char-name {
+  font-size: 24rpx;
+  color: #b0bec5;
+}
+
 .scene-name {
   font-size: 26rpx;
   color: #90a4ae;

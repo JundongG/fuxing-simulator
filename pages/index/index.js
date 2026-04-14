@@ -1,5 +1,6 @@
 // pages/index/index.js
 const presetRoutes = require('../../utils/routes')
+const characters = require('../../utils/characters')
 
 Page({
   data: {
@@ -7,14 +8,30 @@ Page({
     loading: false,
     routes: presetRoutes,
     hotRoutes: presetRoutes.slice(0, 6),
+    characters: characters,
+    selectedChar: characters[0], // 默认选中第一个
   },
 
   onInputChange(e) {
     this.setData({ aiInput: e.detail.value })
   },
 
+  // 选择角色
+  onSelectChar(e) {
+    const char = e.currentTarget.dataset.char
+    this.setData({ selectedChar: char })
+    // 保存到全局
+    getApp().globalData.selectedChar = char
+    wx.vibrateShort && wx.vibrateShort({ type: 'light' })
+  },
+
   // AI生成场景并进入驾驶
   async onGenerate() {
+    if (!this.data.selectedChar) {
+      wx.showToast({ title: '请先选择一个小司机', icon: 'none' })
+      return
+    }
+
     const input = this.data.aiInput.trim()
     if (!input) {
       wx.showToast({ title: '请输入你想开的路线', icon: 'none' })
@@ -34,7 +51,6 @@ Page({
         throw new Error('生成失败')
       }
 
-      // 保存到全局，跳转到场景介绍页
       getApp().globalData.currentScene = sceneData
       wx.navigateTo({ url: '/pages/scene/scene?from=ai' })
     } catch (err) {
@@ -47,6 +63,11 @@ Page({
 
   // 选择预制线路
   onSelectRoute(e) {
+    if (!this.data.selectedChar) {
+      wx.showToast({ title: '请先选择一个小司机', icon: 'none' })
+      return
+    }
+
     const route = e.currentTarget.dataset.route
     getApp().globalData.currentScene = {
       title: route.name,
@@ -58,7 +79,6 @@ Page({
     wx.navigateTo({ url: '/pages/scene/scene?from=preset' })
   },
 
-  // 分享
   onShareAppMessage() {
     return {
       title: '来开一次复兴号！AI一句话生成你的高铁之旅 🚄',

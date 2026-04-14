@@ -101,6 +101,92 @@
   border-radius: 24rpx;
 }
 
+/* 角色信息条 */
+.char-bar {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  margin: -20rpx 30rpx 20rpx;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  z-index: 3;
+}
+
+.char-bar-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mini-face {
+  position: absolute;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  left: 50%;
+  top: 4rpx;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.mini-eyes {
+  position: absolute;
+  top: 14rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8rpx;
+}
+
+.mini-eye {
+  width: 6rpx;
+  height: 7rpx;
+  background: #333;
+  border-radius: 50%;
+}
+
+.mini-shirt {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 54rpx;
+  height: 22rpx;
+  border-radius: 27rpx 27rpx 0 0;
+  z-index: 1;
+}
+
+.char-bar-info {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.char-bar-name {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 500;
+  display: block;
+}
+
+.char-bar-role {
+  font-size: 20rpx;
+  color: #78909c;
+  display: block;
+  margin-top: 2rpx;
+}
+
+.char-bar-badge {
+  font-size: 20rpx;
+  color: #fff;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+}
+
 .start-section {
   position: fixed;
   bottom: 0;

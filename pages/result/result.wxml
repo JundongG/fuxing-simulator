@@ -3,6 +3,19 @@
   <view class="result-header">
     <view class="trophy">🏆</view>
     <view class="title">驾驶完成！</view>
+    <!-- 小司机信息 -->
+    <view class="result-char" wx:if="{{character}}">
+      <view class="result-char-avatar" style="background: {{character.bgColor}};">
+        <view class="rc-face" style="background: {{character.skinColor}};">
+          <view class="rc-eyes">
+            <view class="rc-eye"></view>
+            <view class="rc-eye"></view>
+          </view>
+        </view>
+        <view class="rc-shirt" style="background: {{character.shirtColor}};"></view>
+      </view>
+      <text class="result-char-name">{{character.name}} · {{character.englishName}}</text>
+    </view>
     <view class="scene-name">{{result.sceneTitle}}</view>
   </view>
 

@@ -18,6 +18,7 @@ Page({
     eventsPassed: 0,
     eventsTotal: 0,
     canvasReady: false,
+    character: null,
   },
 
   canvas: null,
@@ -48,9 +49,11 @@ Page({
 
   onLoad() {
     const scene = getApp().globalData.currentScene
+    const char = getApp().globalData.selectedChar
     this.state.sceneConfig = scene ? scene.config : {
       time: 'day', weather: 'clear', terrain: 'plain', speedLimit: 350, landmarks: []
     }
+    this.setData({ character: char || null })
 
     // 延迟初始化Canvas（确保DOM渲染完成）
     setTimeout(() => {
