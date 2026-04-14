@@ -115,29 +115,16 @@ Page({
       }
     }, 1000)
 
-    // 渲染循环
-    const loop = () => {
-      if (!this.state.paused && !this.state.gameOver) {
-        this.update()
-        this.render()
+    // 渲染循环（小程序用 setTimeout 模拟 60fps）
+    const self = this
+    const loop = function () {
+      if (!self.state.paused && !self.state.gameOver) {
+        self.update()
+        self.render()
       }
-      this.animFrameId = wxAnimationFrame(loop)
+      self.animFrameId = setTimeout(loop, 16)
     }
-
-    // 兼容：wx下用requestAnimationFrame替代
-    if (typeof wxAnimationFrame === 'undefined') {
-      const self = this
-      const raf = function() {
-        if (!self.state.paused && !self.state.gameOver) {
-          self.update()
-          self.render()
-        }
-        self.animFrameId = setTimeout(raf, 16)
-      }
-      raf()
-    } else {
-      loop()
-    }
+    loop()
   },
 
   stopGameLoop() {
