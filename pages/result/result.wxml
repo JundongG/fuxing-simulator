@@ -14,7 +14,7 @@
         </view>
         <view class="rc-shirt" style="background: {{character.shirtColor}};"></view>
       </view>
-      <text class="result-char-name">{{character.name}} · {{character.englishName}}</text>
+      <text class="result-char-name">{{character.name}}</text>
     </view>
     <view class="scene-name">{{result.sceneTitle}}</view>
   </view>

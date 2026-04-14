@@ -3,7 +3,6 @@ module.exports = [
   {
     id: 'boy1',
     name: '卜二',
-    englishName: 'Lucas',
     gender: 'boy',
     avatar: '👦',
     color: '#4fc3f7',
@@ -16,8 +15,7 @@ module.exports = [
   },
   {
     id: 'boy2',
-    name: '卜二',
-    englishName: 'Lucas',
+    name: 'Lucas',
     gender: 'boy',
     avatar: '🧑',
     color: '#66bb6a',
@@ -31,7 +29,6 @@ module.exports = [
   {
     id: 'girl1',
     name: '卜一',
-    englishName: 'Grace',
     gender: 'girl',
     avatar: '👧',
     color: '#f48fb1',
@@ -44,8 +41,7 @@ module.exports = [
   },
   {
     id: 'girl2',
-    name: '卜一',
-    englishName: 'Grace',
+    name: 'Grace',
     gender: 'girl',
     avatar: '👩',
     color: '#ce93d8',

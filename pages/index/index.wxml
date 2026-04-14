@@ -40,7 +40,6 @@
         </view>
       </view>
       <view class="char-name">{{item.name}}</view>
-      <view class="char-eng">{{item.englishName}}</view>
       <view class="char-tag" style="background: {{item.color}}; color: #fff;">{{item.tag}}</view>
     </view>
   </scroll-view>
