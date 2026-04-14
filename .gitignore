@@ -1,0 +1,7 @@
+node_modules/
+cloudfunctions/*/node_modules/
+miniprogram_npm/
+.idea/
+.vscode/
+*.log
+.DS_Store
