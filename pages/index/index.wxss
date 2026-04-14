@@ -1,0 +1,146 @@
+/* pages/index/index.wxss */
+
+.container {
+  padding: 40rpx 30rpx;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 50%, #0f0f23 100%);
+}
+
+/* 头部 */
+.header {
+  text-align: center;
+  padding: 60rpx 0 40rpx;
+}
+
+.logo {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.header .title {
+  font-size: 44rpx;
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 4rpx;
+}
+
+.header .subtitle {
+  font-size: 26rpx;
+  color: #90a4ae;
+  margin-top: 8rpx;
+}
+
+/* AI输入区 */
+.ai-section {
+  margin: 40rpx 0;
+}
+
+.input-wrapper {
+  position: relative;
+  margin-bottom: 20rpx;
+}
+
+.ai-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 2rpx solid rgba(79, 195, 247, 0.3);
+  border-radius: 16rpx;
+  padding: 24rpx 24rpx 24rpx 30rpx;
+  color: #fff;
+  font-size: 28rpx;
+}
+
+.placeholder {
+  color: #546e7a;
+}
+
+.input-icon {
+  position: absolute;
+  right: 24rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 32rpx;
+}
+
+.generate-btn {
+  width: 100%;
+  font-size: 32rpx;
+  letter-spacing: 2rpx;
+}
+
+.generate-btn.loading {
+  opacity: 0.7;
+}
+
+/* 热门线路 */
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #fff;
+  margin: 50rpx 0 24rpx;
+}
+
+.route-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.route-card {
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: #1a1a3e;
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
+}
+
+.route-card:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+.route-cover {
+  height: 140rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.route-emoji {
+  font-size: 48rpx;
+}
+
+.route-info {
+  padding: 12rpx 16rpx;
+}
+
+.route-name {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-distance {
+  font-size: 20rpx;
+  color: #78909c;
+  margin-top: 4rpx;
+}
+
+/* 底部 */
+.footer-tip {
+  text-align: center;
+  margin-top: 60rpx;
+  padding-bottom: 40rpx;
+}
+
+.tip-text {
+  font-size: 22rpx;
+  color: #546e7a;
+}

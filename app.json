@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/scene/scene",
+    "pages/drive/drive",
+    "pages/result/result"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1a1a2e",
+    "navigationBarTitleText": "复兴号模拟驾驶",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0f0f23"
+  },
+  "cloud": true,
+  "sitemapLocation": "sitemap.json",
+  "style": "v2"
+}

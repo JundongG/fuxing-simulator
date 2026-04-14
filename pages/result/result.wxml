@@ -1,0 +1,57 @@
+<!--pages/result/result.wxml-->
+<view class="result-page">
+  <view class="result-header">
+    <view class="trophy">🏆</view>
+    <view class="title">驾驶完成！</view>
+    <view class="scene-name">{{result.sceneTitle}}</view>
+  </view>
+
+  <!-- 成绩卡片 -->
+  <view class="score-card">
+    <view class="score-big" style="color: {{gradeColor}}">{{result.score}}</view>
+    <view class="score-label">总得分</view>
+    <view class="grade-badge" style="background: {{gradeColor}}20; color: {{gradeColor}}; border-color: {{gradeColor}}40;">
+      {{grade}}
+    </view>
+  </view>
+
+  <!-- 详细数据 -->
+  <view class="stats-grid">
+    <view class="stat-item">
+      <view class="stat-value">{{result.mileage}}<text class="stat-unit">km</text></view>
+      <view class="stat-label">总里程</view>
+    </view>
+    <view class="stat-item">
+      <view class="stat-value">{{result.maxSpeed}}<text class="stat-unit">km/h</text></view>
+      <view class="stat-label">最高时速</view>
+    </view>
+    <view class="stat-item">
+      <view class="stat-value">{{result.crossings}}</view>
+      <view class="stat-label">列车交汇</view>
+    </view>
+    <view class="stat-item">
+      <view class="stat-value">{{result.eventsPassed}}/{{result.eventsTotal}}</view>
+      <view class="stat-label">调度通过</view>
+    </view>
+  </view>
+
+  <!-- 复盘小结 -->
+  <view class="summary-card">
+    <view class="summary-label">📝 驾驶复盘</view>
+    <view class="summary-text">
+      本次驾驶{{result.sceneTitle}}，总里程{{result.mileage}}km，
+      最高时速{{result.maxSpeed}}km/h，成功通过{{result.eventsPassed}}次调度事件，
+      经历{{result.crossings}}次列车交汇。{{result.eventsPassed >= result.eventsTotal * 0.8 ? '表现优秀！' : '继续加油！'}}
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="actions safe-bottom">
+    <button class="btn-accent" bindtap="onReplay">🔄 再来一次</button>
+    <view class="action-row">
+      <button class="btn-secondary" bindtap="onSaveImage">📸 保存截图</button>
+      <button class="btn-secondary" open-type="share">📤 分享给朋友</button>
+    </view>
+    <view class="back-home" bindtap="onHome">返回首页</view>
+  </view>
+</view>

@@ -1,0 +1,48 @@
+<!--pages/scene/scene.wxml-->
+<view class="scene-page">
+  <!-- 返回按钮 -->
+  <view class="back-btn" bindtap="onBack">← 返回</view>
+
+  <!-- 场景封面 -->
+  <view class="cover">
+    <view class="cover-bg" style="background: {{scene.config.terrain === 'mountain' ? 'linear-gradient(135deg, #667eea, #764ba2)' : scene.config.terrain === 'coast' ? 'linear-gradient(135deg, #43e97b, #38f9d7)' : scene.config.terrain === 'city' ? 'linear-gradient(135deg, #a18cd1, #fbc2eb)' : scene.config.terrain === 'tunnel' ? 'linear-gradient(135deg, #4facfe, #00f2fe)' : 'linear-gradient(135deg, #89f7fe, #66a6ff)'}};"></view>
+    <view class="cover-icon">🚄</view>
+  </view>
+
+  <!-- 场景信息 -->
+  <view class="scene-info">
+    <view class="scene-title">{{scene.title}}</view>
+    <view class="scene-tags">
+      <view class="tag">{{scene.config.time === 'day' ? '☀️ 白天' : scene.config.time === 'night' ? '🌙 夜间' : '🌅 黄昏'}}</view>
+      <view class="tag" wx:if="{{scene.config.weather !== 'clear'}}">{{scene.config.weather === 'rain' ? '🌧️ 雨天' : scene.config.weather === 'snow' ? '❄️ 雪天' : '🌫️ 雾天'}}</view>
+      <view class="tag">限速 {{scene.config.speedLimit}} km/h</view>
+    </view>
+
+    <!-- 场景描述 -->
+    <view class="card">
+      <view class="card-label">📖 场景故事</view>
+      <view class="card-text">{{scene.description}}</view>
+    </view>
+
+    <!-- 高铁知识 -->
+    <view class="card">
+      <view class="card-label">💡 高铁小知识</view>
+      <view class="card-text">{{scene.knowledge}}</view>
+    </view>
+
+    <!-- 地标 -->
+    <view class="card" wx:if="{{scene.config.landmarks && scene.config.landmarks.length > 0}}">
+      <view class="card-label">📍 途经地标</view>
+      <view class="landmarks">
+        <view class="landmark" wx:for="{{scene.config.landmarks}}" wx:key="*this">{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 进入驾驶按钮 -->
+  <view class="start-section safe-bottom">
+    <button class="btn-accent start-btn" bindtap="onStartDrive">
+      🚀 进入驾驶舱
+    </button>
+  </view>
+</view>

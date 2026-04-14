@@ -1,0 +1,54 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 头部 -->
+  <view class="header">
+    <view class="logo">🚄</view>
+    <view class="title">复兴号模拟驾驶</view>
+    <view class="subtitle">一句话，开启你的高铁之旅</view>
+  </view>
+
+  <!-- AI输入区 -->
+  <view class="ai-section">
+    <view class="input-wrapper">
+      <input
+        class="ai-input"
+        placeholder="例：CR400复兴号穿越武夷山隧道"
+        placeholder-class="placeholder"
+        value="{{aiInput}}"
+        bindinput="onInputChange"
+        bindconfirm="onGenerate"
+        maxlength="50"
+      />
+      <view class="input-icon">✨</view>
+    </view>
+    <button class="btn-primary generate-btn {{loading ? 'loading' : ''}}" bindtap="onGenerate" disabled="{{loading}}">
+      <block wx:if="{{loading}}">生成中...</block>
+      <block wx:else>🎮 生成并驾驶</block>
+    </button>
+  </view>
+
+  <!-- 热门线路 -->
+  <view class="section-title">🔥 热门线路</view>
+  <view class="route-grid">
+    <view
+      class="route-card"
+      wx:for="{{hotRoutes}}"
+      wx:key="id"
+      bindtap="onSelectRoute"
+      data-route="{{item}}"
+    >
+      <view class="route-cover" style="background: {{item.gradient}}">
+        <view class="route-emoji">{{item.emoji}}</view>
+      </view>
+      <view class="route-info">
+        <view class="route-name">{{item.name}}</view>
+        <view class="route-distance">{{item.distance}}km</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="footer-tip">
+    <text class="tip-text">⚠️ 本产品为娱乐模拟，非真实驾驶训练</text>
+  </view>
+</view>

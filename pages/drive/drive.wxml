@@ -1,0 +1,57 @@
+<!--pages/drive/drive.wxml-->
+<view class="drive-page">
+  <!-- Canvas画布 -->
+  <canvas type="2d" id="gameCanvas" class="game-canvas"></canvas>
+
+  <!-- 顶部HUD -->
+  <view class="hud-top">
+    <view class="speed-display">
+      <text class="speed-value">{{speed}}</text>
+      <text class="speed-unit">km/h</text>
+    </view>
+    <view class="hud-info">
+      <view class="hud-item">里程 {{mileage}}km</view>
+      <view class="hud-item">得分 {{score}}</view>
+    </view>
+  </view>
+
+  <!-- 信号灯 -->
+  <view class="signal-bar" wx:if="{{signalText}}">
+    <view class="signal-dot {{signalStatus}}"></view>
+    <text class="signal-text">{{signalText}}</text>
+  </view>
+
+  <!-- 事件弹窗 -->
+  <view class="event-overlay" wx:if="{{eventVisible}}">
+    <view class="event-card">
+      <view class="event-text">{{eventText}}</view>
+      <button class="btn-primary event-btn" bindtap="onHandleEvent">确认处理</button>
+    </view>
+  </view>
+
+  <!-- 底部控制区 -->
+  <view class="controls safe-bottom" wx:if="{{!eventVisible}}">
+    <!-- 速度条 -->
+    <view class="speed-bar">
+      <view class="speed-fill" style="width: {{speed / 350 * 100}}%; background: {{speed > 300 ? '#ef5350' : speed > 200 ? '#ffa726' : '#4fc3f7'}};"></view>
+    </view>
+
+    <!-- 控制按钮 -->
+    <view class="btn-row">
+      <button class="ctrl-btn brake" bindtap="onBrake">
+        <text class="ctrl-icon">🛑</text>
+        <text class="ctrl-label">刹车</text>
+      </button>
+      <button class="ctrl-btn accelerate" bindtap="onAccelerate">
+        <text class="ctrl-icon">⚡</text>
+        <text class="ctrl-label">加速</text>
+      </button>
+    </view>
+
+    <!-- 底部操作 -->
+    <view class="bottom-bar">
+      <view class="pause-btn" bindtap="onPause">{{paused ? '▶ 继续' : '⏸ 暂停'}}</view>
+      <view class="finish-btn" bindtap="onFinish">🏁 结束</view>
+    </view>
+  </view>
+</view>
