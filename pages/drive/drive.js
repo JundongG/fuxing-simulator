@@ -1,5 +1,6 @@
 // pages/drive/drive.js — 驾驶界面（核心）
 const Renderer = require('./engine/renderer')
+const audio = require('../../utils/audio')
 
 Page({
   data: {
@@ -16,6 +17,7 @@ Page({
     crossings: 0,
     eventsPassed: 0,
     eventsTotal: 0,
+    canvasReady: false,
   },
 
   canvas: null,
@@ -49,13 +51,19 @@ Page({
     this.state.sceneConfig = scene ? scene.config : {
       time: 'day', weather: 'clear', terrain: 'plain', speedLimit: 350, landmarks: []
     }
-    this.initCanvas()
+
+    // 延迟初始化Canvas（确保DOM渲染完成）
+    setTimeout(() => {
+      this.initCanvas()
+    }, 100)
+
     this.generateEvents()
-    this.startGameLoop()
+    audio.init()
   },
 
   onUnload() {
     this.stopGameLoop()
+    audio.destroy()
   },
 
   // 初始化Canvas
@@ -65,7 +73,8 @@ Page({
       .fields({ node: true, size: true })
       .exec((res) => {
         if (!res || !res[0]) {
-          console.error('[Drive] Canvas not found')
+          console.error('[Drive] Canvas not found, retrying...')
+          setTimeout(() => this.initCanvas(), 200)
           return
         }
         this.canvas = res[0].node
@@ -77,6 +86,8 @@ Page({
         this.ctx.scale(dpr, dpr)
 
         this.renderer = new Renderer(this.ctx, res[0].width, res[0].height, this.state.sceneConfig)
+        this.setData({ canvasReady: true })
+        this.startGameLoop()
         console.log('[Drive] Canvas初始化完成', res[0].width, 'x', res[0].height)
       })
   },
@@ -201,6 +212,11 @@ Page({
       eventType: event.type,
     })
 
+    // 事件音效
+    audio.playAlert()
+    if (event.type === 'crossing') audio.playPassing()
+    if (event.type === 'tunnel') audio.playTunnel()
+
     // 信号灯状态
     if (event.type.startsWith('signal_')) {
       this.setData({
@@ -239,11 +255,13 @@ Page({
     const limit = this.state.sceneConfig.speedLimit || 350
     this.targetSpeed = Math.min(limit + 10, this.targetSpeed + 30)
     this.targetSpeed = Math.min(380, this.targetSpeed)
+    audio.playShort('accel')
   },
 
   onBrake() {
     this.targetSpeed = Math.max(0, this.targetSpeed - 80)
     this.state.score += 5 // 刹车加分
+    audio.playBrake()
   },
 
   // 处理事件（用户确认）
@@ -292,6 +310,7 @@ Page({
       signalStatus: 'green',
       signalText: '前方畅通',
     })
+    audio.playScore()
   },
 
   // 暂停

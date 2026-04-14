@@ -7,6 +7,49 @@
   background: #0a0a1a;
 }
 
+/* 加载状态 */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: #0a0a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-train {
+  font-size: 80rpx;
+  animation: trainMove 1.5s ease-in-out infinite;
+}
+
+@keyframes trainMove {
+  0%, 100% { transform: translateX(-20rpx); }
+  50% { transform: translateX(20rpx); }
+}
+
+.loading-text {
+  color: #90a4ae;
+  font-size: 28rpx;
+  margin-top: 20rpx;
+}
+
+.loading-dots {
+  color: #4fc3f7;
+  font-size: 32rpx;
+  margin-top: 10rpx;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
 .game-canvas {
   position: absolute;
   top: 0;
