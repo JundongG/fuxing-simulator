@@ -21,7 +21,7 @@ Page({
     const char = e.currentTarget.dataset.char
     this.setData({ selectedChar: char })
     // 保存到全局
-    getApp().globalData.selectedChar = char
+    wx._globalData.selectedChar = char
     wx.vibrateShort && wx.vibrateShort({ type: 'light' })
   },
 
@@ -51,7 +51,7 @@ Page({
         throw new Error('生成失败')
       }
 
-      getApp().globalData.currentScene = sceneData
+      wx._globalData.currentScene = sceneData
       wx.navigateTo({ url: '/pages/scene/scene?from=ai' })
     } catch (err) {
       console.error('[AI生成失败]', err)
@@ -69,7 +69,7 @@ Page({
     }
 
     const route = e.currentTarget.dataset.route
-    getApp().globalData.currentScene = {
+    wx._globalData.currentScene = {
       title: route.name,
       description: route.desc,
       knowledge: route.knowledge,

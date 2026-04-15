@@ -8,8 +8,8 @@ Page({
   },
 
   onLoad() {
-    const result = getApp().globalData.lastResult
-    const char = getApp().globalData.selectedChar
+    const result = wx._globalData.lastResult
+    const char = wx._globalData.selectedChar
     if (!result) {
       wx.redirectTo({ url: '/pages/index/index' })
       return

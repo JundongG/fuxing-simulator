@@ -48,8 +48,8 @@ Page({
   nextEventMileage: 2,
 
   onLoad() {
-    const scene = getApp().globalData.currentScene
-    const char = getApp().globalData.selectedChar
+    const scene = wx._globalData.currentScene
+    const char = wx._globalData.selectedChar
     this.state.sceneConfig = scene ? scene.config : {
       time: 'day', weather: 'clear', terrain: 'plain', speedLimit: 350, landmarks: []
     }
@@ -335,10 +335,10 @@ Page({
       eventsPassed: this.state.eventsPassed,
       eventsTotal: this.state.eventsTotal,
       duration: this.data.timeElapsed,
-      sceneTitle: getApp().globalData.currentScene?.title || '自由驾驶',
+      sceneTitle: wx._globalData.currentScene && wx._globalData.currentScene.title || '自由驾驶',
     }
 
-    getApp().globalData.lastResult = result
+    wx._globalData.lastResult = result
     wx.redirectTo({ url: '/pages/result/result' })
   },
 

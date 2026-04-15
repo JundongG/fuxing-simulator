@@ -5,3 +5,5 @@ miniprogram_npm/
 .vscode/
 *.log
 .DS_Store
+*.key
+node_modules/

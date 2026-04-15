@@ -7,8 +7,8 @@ Page({
   },
 
   onLoad(options) {
-    const app = getApp()
-    const scene = app.globalData.currentScene
+    const gd = wx._globalData
+    const scene = gd.currentScene
     if (!scene) {
       wx.redirectTo({ url: '/pages/index/index' })
       return
@@ -16,7 +16,7 @@ Page({
     this.setData({
       scene,
       from: options.from || 'preset',
-      character: app.globalData.selectedChar || null,
+      character: gd.selectedChar || null,
     })
   },
 

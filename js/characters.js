@@ -1,0 +1,57 @@
+// js/characters.js — 角色数据
+var characters = [
+  {
+    id: 'boy1',
+    name: '卜二',
+    gender: 'boy',
+    avatar: '👦',
+    color: '#4fc3f7',
+    bgColor: '#e1f5fe',
+    hairColor: '#5d4037',
+    skinColor: '#ffcc80',
+    shirtColor: '#2196f3',
+    tag: '活力满满',
+    desc: '高铁小司机，最爱研究火车！'
+  },
+  {
+    id: 'boy2',
+    name: 'Lucas',
+    gender: 'boy',
+    avatar: '🧑',
+    color: '#ef5350',
+    bgColor: '#ffebee',
+    hairColor: '#3e2723',
+    skinColor: '#ffe0b2',
+    shirtColor: '#e53935',
+    tag: '热血少年',
+    desc: '速度就是一切，冲就完了！'
+  },
+  {
+    id: 'girl1',
+    name: '卜一',
+    gender: 'girl',
+    avatar: '👧',
+    color: '#f48fb1',
+    bgColor: '#fce4ec',
+    hairColor: '#4e342e',
+    skinColor: '#ffccbc',
+    shirtColor: '#e91e63',
+    tag: '元气少女',
+    desc: '扎着双马尾，笑容最灿烂！'
+  },
+  {
+    id: 'girl2',
+    name: 'Grace',
+    gender: 'girl',
+    avatar: '👩',
+    color: '#ce93d8',
+    bgColor: '#f3e5f5',
+    hairColor: '#1a237e',
+    skinColor: '#ffe0b2',
+    shirtColor: '#9c27b0',
+    tag: '优雅安静',
+    desc: '长发飘飘，最爱看窗外风景！'
+  }
+]
+
+module.exports = characters
