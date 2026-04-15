@@ -1,4 +1,4 @@
-// js/home.js — 首页（纯Canvas）
+// js/home.js — 首页 v1.0（纯Canvas）
 var GW = require('./global')
 var characters = require('./characters')
 var routes = require('./routes')
@@ -52,7 +52,7 @@ function draw(ctx, w, h) {
   drawCharCards(ctx, w, charCardY)
 
   // 选中角色描述
-  var descY = charCardY + 100
+  var descY = charCardY + 112
   var selChar = characters[selectedCharIdx]
   ctx.fillStyle = selChar.color
   ctx.font = '13px sans-serif'
@@ -60,13 +60,9 @@ function draw(ctx, w, h) {
   ctx.fillText(selChar.name + ' — ' + selChar.desc, w / 2, descY)
   ctx.textAlign = 'left'
 
-  // AI输入区
-  var inputY = descY + 20
-  drawAIInput(ctx, w, inputY)
-
   // 热门线路
-  var routeY = inputY + 90
-  drawSectionLabel(ctx, 16, routeY, '热门线路')
+  var routeY = descY + 24
+  drawSectionLabel(ctx, 16, routeY, '选择线路')
   drawRouteGrid(ctx, w, routeY + 28, h)
 
   // 底部提示
@@ -184,64 +180,9 @@ function drawCharCards(ctx, w, y) {
   }
 }
 
-function drawAIInput(ctx, w, y) {
-  var inputX = 16
-  var inputW = w - 32
-  var inputH = 40
-
-  // 输入框
-  ctx.fillStyle = 'rgba(255,255,255,0.1)'
-  roundRect(ctx, inputX, y, inputW, inputH, 8)
-  ctx.fill()
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)'
-  ctx.lineWidth = 1
-  roundRect(ctx, inputX, y, inputW, inputH, 8)
-  ctx.stroke()
-
-  // 文字或placeholder
-  ctx.font = '14px sans-serif'
-  if (aiInput) {
-    ctx.fillStyle = '#fff'
-    ctx.fillText(aiInput, inputX + 12, y + 25)
-  } else {
-    ctx.fillStyle = 'rgba(255,255,255,0.3)'
-    ctx.fillText('例：复兴号穿越武夷山隧道', inputX + 12, y + 25)
-  }
-
-  // 闪光图标
-  ctx.font = '16px sans-serif'
-  ctx.fillText('✨', inputX + inputW - 30, y + 27)
-
-  // 注册点击区域（点击弹出输入框）
-  touchAreas.push({ x: inputX, y: y, w: inputW, h: inputH, type: 'ai_input' })
-
-  // 生成按钮
-  var btnY = y + inputH + 12
-  var btnH = 44
-  var btnGrad = ctx.createLinearGradient(inputX, btnY, inputX + inputW, btnY)
-  if (loading) {
-    btnGrad.addColorStop(0, '#555')
-    btnGrad.addColorStop(1, '#444')
-  } else {
-    btnGrad.addColorStop(0, '#4fc3f7')
-    btnGrad.addColorStop(1, '#ab47bc')
-  }
-  ctx.fillStyle = btnGrad
-  roundRect(ctx, inputX, btnY, inputW, btnH, 22)
-  ctx.fill()
-
-  ctx.fillStyle = '#fff'
-  ctx.font = 'bold 15px sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText(loading ? '生成中...' : '生成并驾驶', w / 2, btnY + 28)
-  ctx.textAlign = 'left'
-
-  touchAreas.push({ x: inputX, y: btnY, w: inputW, h: btnH, type: 'generate' })
-}
-
 function drawRouteGrid(ctx, w, startY, screenH) {
   var cardW = (w - 48) / 2
-  var cardH = 75
+  var cardH = 85
   var gap = 10
   var cols = 2
 
@@ -268,15 +209,31 @@ function drawRouteGrid(ctx, w, startY, screenH) {
     ctx.font = 'bold 13px sans-serif'
     ctx.fillText(route.name, x + 42, y + 25)
 
+    // 难度标签
+    var diffColors = ['#4caf50', '#ffa726', '#ef5350']
+    var diffTexts = ['新手', '中级', '高级']
+    var diff = route.difficulty || 1
+    ctx.fillStyle = diffColors[Math.min(diff - 1, 2)]
+    ctx.font = 'bold 9px sans-serif'
+    ctx.fillText(diffTexts[Math.min(diff - 1, 2)], x + 42, y + 42)
+
     // 距离
     ctx.fillStyle = 'rgba(255,255,255,0.4)'
-    ctx.font = '11px sans-serif'
-    ctx.fillText(route.distance + 'km', x + 42, y + 42)
+    ctx.font = '10px sans-serif'
+    ctx.fillText(route.distance + 'km', x + 42 + ctx.measureText(diffTexts[Math.min(diff - 1, 2)]).width + 8, y + 42)
 
     // 限速
     ctx.fillStyle = 'rgba(79,195,247,0.6)'
     ctx.font = '10px sans-serif'
     ctx.fillText('限速 ' + route.config.speedLimit + 'km/h', x + 42, y + 58)
+
+    // 天气标签
+    if (route.config.weather !== 'clear') {
+      var weatherLabels = { rain: '🌧️雨天', snow: '❄️雪天' }
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'
+      ctx.font = '9px sans-serif'
+      ctx.fillText(weatherLabels[route.config.weather] || '', x + 42, y + 73)
+    }
 
     touchAreas.push({ x: x, y: y, w: cardW, h: cardH, type: 'route', idx: i })
   }
@@ -306,69 +263,12 @@ function handleTouch(x, y) {
         wx.vibrateShort && wx.vibrateShort({ type: 'light' })
         return
       }
-      if (a.type === 'ai_input') {
-        wx.showModal({
-          title: 'AI生成场景',
-          content: '',
-          editable: true,
-          placeholderText: '例：复兴号穿越武夷山隧道',
-          success: function(res) {
-            if (res.confirm && res.content) {
-              aiInput = res.content
-            }
-          }
-        })
-        return
-      }
-      if (a.type === 'generate') {
-        onGenerate()
-        return
-      }
       if (a.type === 'route') {
         onSelectRoute(a.idx)
         return
       }
     }
   }
-}
-
-function onGenerate() {
-  if (loading) return
-  if (!GW.selectedChar) {
-    wx.showToast({ title: '请先选择一个小司机', icon: 'none' })
-    return
-  }
-  if (!aiInput.trim()) {
-    wx.showModal({
-      title: 'AI生成场景',
-      editable: true,
-      placeholderText: '例：复兴号穿越武夷山隧道',
-      success: function(res) {
-        if (res.confirm && res.content) {
-          aiInput = res.content
-          doGenerate()
-        }
-      }
-    })
-    return
-  }
-  doGenerate()
-}
-
-function doGenerate() {
-  loading = true
-  // 模拟AI生成（云函数可能不可用，用预设随机场景）
-  var randomRoute = routes[Math.floor(Math.random() * routes.length)]
-  GW.currentScene = {
-    title: aiInput || randomRoute.name,
-    description: '基于"' + (aiInput || randomRoute.name) + '"生成的高铁驾驶场景。列车飞驰，窗外风景如画。',
-    knowledge: randomRoute.knowledge,
-    config: randomRoute.config
-  }
-  setTimeout(function() {
-    loading = false
-    GW.currentScreen = 'scene'
-  }, 800)
 }
 
 function onSelectRoute(idx) {
@@ -381,7 +281,8 @@ function onSelectRoute(idx) {
     title: route.name,
     description: route.desc,
     knowledge: route.knowledge,
-    config: route.config
+    config: route.config,
+    distance: route.distance // 传递距离给驾驶系统
   }
   GW.currentScreen = 'scene'
 }
