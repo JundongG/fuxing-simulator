@@ -22,11 +22,15 @@ var GW = {
   
   // 初始化系统信息
   init: function() {
-    var info = wx.getSystemInfoSync()
-    this.screenWidth = info.screenWidth
-    this.screenHeight = info.screenHeight
-    this.pixelRatio = info.pixelRatio || 2
-    console.log('[GW] 系统:', info.model, info.screenWidth + 'x' + info.screenHeight)
+    try {
+      var info = wx.getSystemInfoSync()
+      this.screenWidth = info.screenWidth || 375
+      this.screenHeight = info.screenHeight || 812
+      this.pixelRatio = info.pixelRatio || 2
+      console.log('[GW] 系统:', info.model || 'unknown', this.screenWidth + 'x' + this.screenHeight)
+    } catch (e) {
+      console.warn('[GW] getSystemInfoSync失败，使用默认值:', e.message)
+    }
   }
 }
 
