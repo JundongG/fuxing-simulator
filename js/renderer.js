@@ -1,4 +1,4 @@
-// js/renderer.js — Canvas 2D 视差滚动渲染引擎
+// js/renderer.js — Canvas 2D 视差滚动渲染引擎 v1.1
 
 function Renderer(ctx, width, height, sceneConfig) {
   this.ctx = ctx
@@ -14,6 +14,8 @@ function Renderer(ctx, width, height, sceneConfig) {
   this.oncomingTrain = null
   this.trainTimer = 0
   this.seed = Math.random() * 10000
+  this.wiperAngle = 0 // 雨刮器角度
+  this.wiperDir = 1
 }
 
 Renderer.prototype.draw = function(speed, mileage) {
@@ -42,6 +44,13 @@ Renderer.prototype.draw = function(speed, mileage) {
     this.trainTimer = 0
   }
 
+  // 雨刮器（雨天时动）
+  if (this.config.weather === 'rain') {
+    this.wiperAngle += 0.04 * this.wiperDir
+    if (this.wiperAngle > 1) this.wiperDir = -1
+    if (this.wiperAngle < 0) this.wiperDir = 1
+  }
+
   this.drawSky(ctx, w, h, speedFactor)
   this.drawFarLayer(ctx, w, h, speedFactor)
   this.drawMidLayer(ctx, w, h, speedFactor)
@@ -50,6 +59,7 @@ Renderer.prototype.draw = function(speed, mileage) {
   if (this.oncomingTrain) this.drawOncomingTrain(ctx, w, h, speedFactor)
   if (speed > 150) this.drawSpeedLines(ctx, w, h, speedFactor)
   this.drawCockpit(ctx, w, h)
+  if (this.config.weather === 'rain') this.drawWipers(ctx, w, h)
 }
 
 Renderer.prototype.drawSky = function(ctx, w, h, speedFactor) {
@@ -97,10 +107,6 @@ Renderer.prototype.drawSky = function(ctx, w, h, speedFactor) {
     }
     ctx.globalAlpha = 1
   }
-
-  var weather = this.config.weather
-  if (weather === 'snow') this.drawSnow(ctx, w, h, speedFactor)
-  else if (weather === 'rain') this.drawRain(ctx, w, h, speedFactor)
 }
 
 Renderer.prototype.drawCloud = function(ctx, x, y, size) {
@@ -345,62 +351,143 @@ Renderer.prototype.drawSpeedLines = function(ctx, w, h, speedFactor) {
 }
 
 Renderer.prototype.drawCockpit = function(ctx, w, h) {
-  // A柱左
-  ctx.fillStyle = 'rgba(20, 20, 30, 0.95)'
+  var cockpitH = h * 0.22 // 仪表台高度（drive.js会画仪表盘，这里只画框架）
+
+  // A柱左（加粗，更有实感）
+  ctx.fillStyle = 'rgba(15, 15, 25, 0.95)'
   ctx.beginPath()
   ctx.moveTo(0, 0)
-  ctx.lineTo(w * 0.08, 0)
-  ctx.lineTo(w * 0.03, h * 0.6)
-  ctx.lineTo(0, h * 0.5)
+  ctx.lineTo(w * 0.06, 0)
+  ctx.lineTo(w * 0.02, h * 0.55)
+  ctx.lineTo(0, h * 0.45)
+  ctx.closePath()
+  ctx.fill()
+
+  // A柱左内侧阴影
+  ctx.fillStyle = 'rgba(30, 30, 40, 0.5)'
+  ctx.beginPath()
+  ctx.moveTo(w * 0.06, 0)
+  ctx.lineTo(w * 0.09, 0)
+  ctx.lineTo(w * 0.04, h * 0.4)
+  ctx.lineTo(w * 0.02, h * 0.55)
   ctx.closePath()
   ctx.fill()
 
   // A柱右
+  ctx.fillStyle = 'rgba(15, 15, 25, 0.95)'
   ctx.beginPath()
   ctx.moveTo(w, 0)
-  ctx.lineTo(w * 0.92, 0)
-  ctx.lineTo(w * 0.97, h * 0.6)
-  ctx.lineTo(w, h * 0.5)
+  ctx.lineTo(w * 0.94, 0)
+  ctx.lineTo(w * 0.98, h * 0.55)
+  ctx.lineTo(w, h * 0.45)
   ctx.closePath()
   ctx.fill()
 
-  // 仪表台
-  var dashY = h * 0.82
+  ctx.fillStyle = 'rgba(30, 30, 40, 0.5)'
+  ctx.beginPath()
+  ctx.moveTo(w * 0.94, 0)
+  ctx.lineTo(w * 0.91, 0)
+  ctx.lineTo(w * 0.96, h * 0.4)
+  ctx.lineTo(w * 0.98, h * 0.55)
+  ctx.closePath()
+  ctx.fill()
+
+  // 仪表台主体（drive.js会覆盖上层仪表盘）
+  var dashY = h - cockpitH
   var dashGrad = ctx.createLinearGradient(0, dashY, 0, h)
-  dashGrad.addColorStop(0, 'rgba(25, 25, 35, 0.95)')
-  dashGrad.addColorStop(1, 'rgba(15, 15, 25, 0.98)')
+  dashGrad.addColorStop(0, 'rgba(20, 20, 30, 0.95)')
+  dashGrad.addColorStop(0.5, 'rgba(15, 15, 25, 0.98)')
+  dashGrad.addColorStop(1, 'rgba(10, 10, 18, 1)')
   ctx.fillStyle = dashGrad
   ctx.beginPath()
-  ctx.moveTo(0, dashY + 20)
-  ctx.quadraticCurveTo(w * 0.2, dashY, w * 0.5, dashY - 5)
-  ctx.quadraticCurveTo(w * 0.8, dashY, w, dashY + 20)
+  ctx.moveTo(0, dashY + 15)
+  ctx.quadraticCurveTo(w * 0.2, dashY - 5, w * 0.5, dashY - 10)
+  ctx.quadraticCurveTo(w * 0.8, dashY - 5, w, dashY + 15)
   ctx.lineTo(w, h)
   ctx.lineTo(0, h)
   ctx.closePath()
   ctx.fill()
 
-  // 上边框
-  ctx.fillStyle = 'rgba(15, 15, 25, 0.8)'
+  // 仪表台上沿高光
+  ctx.strokeStyle = 'rgba(79, 195, 247, 0.15)'
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.moveTo(w * 0.05, dashY + 10)
+  ctx.quadraticCurveTo(w * 0.2, dashY - 8, w * 0.5, dashY - 12)
+  ctx.quadraticCurveTo(w * 0.8, dashY - 8, w * 0.95, dashY + 10)
+  ctx.stroke()
+
+  // 顶部窗框
+  ctx.fillStyle = 'rgba(10, 10, 20, 0.7)'
   ctx.fillRect(0, 0, w, 4)
 
   // 后视镜
-  ctx.fillStyle = 'rgba(30, 30, 40, 0.9)'
-  ctx.fillRect(w * 0.35, 30, w * 0.3, 12)
-  ctx.fillStyle = 'rgba(100, 120, 150, 0.3)'
-  ctx.fillRect(w * 0.36, 32, w * 0.28, 8)
+  ctx.fillStyle = 'rgba(20, 20, 30, 0.9)'
+  roundRect(ctx, w * 0.35, 25, w * 0.3, 14, 4)
+  ctx.fill()
+  // 镜面
+  ctx.fillStyle = 'rgba(80, 120, 170, 0.25)'
+  roundRect(ctx, w * 0.36, 27, w * 0.28, 10, 3)
+  ctx.fill()
+  // 镜面反光
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'
+  ctx.fillRect(w * 0.37, 28, w * 0.12, 3)
 }
 
-Renderer.prototype.drawSnow = function(ctx, w, h, speedFactor) {
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
-  var time = Date.now() / 1000
-  for (var i = 0; i < 30; i++) {
-    var x = (Math.sin(i * 3.7 + time) * 0.5 + 0.5) * w
-    var y = ((i * 47 + time * (60 + speedFactor * 40)) % h)
-    var r = 1 + Math.sin(i) * 1
-    ctx.beginPath()
-    ctx.arc(x, y, r, 0, Math.PI * 2)
-    ctx.fill()
-  }
+// 雨刮器
+Renderer.prototype.drawWipers = function(ctx, w, h) {
+  var pivotY = h * 0.35
+  var pivotLX = w * 0.25
+  var pivotRX = w * 0.75
+  var wipeLen = w * 0.3
+
+  // 左雨刮
+  var lAngle = -Math.PI * 0.3 + this.wiperAngle * Math.PI * 0.3
+  var lEndX = pivotLX + Math.cos(lAngle) * wipeLen
+  var lEndY = pivotY + Math.sin(lAngle) * wipeLen * 0.6
+
+  ctx.strokeStyle = 'rgba(40, 40, 50, 0.7)'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.moveTo(pivotLX, pivotY)
+  ctx.lineTo(lEndX, lEndY)
+  ctx.stroke()
+
+  // 刮过区域（半透明）
+  ctx.fillStyle = 'rgba(180, 210, 255, 0.03)'
+  ctx.beginPath()
+  ctx.moveTo(pivotLX, pivotY)
+  ctx.lineTo(lEndX, lEndY)
+  ctx.lineTo(lEndX + 20, lEndY + 30)
+  ctx.lineTo(pivotLX + 20, pivotY + 30)
+  ctx.closePath()
+  ctx.fill()
+
+  // 右雨刮
+  var rAngle = -Math.PI * 0.7 - this.wiperAngle * Math.PI * 0.3
+  var rEndX = pivotRX + Math.cos(rAngle) * wipeLen
+  var rEndY = pivotY + Math.sin(rAngle) * wipeLen * 0.6
+
+  ctx.strokeStyle = 'rgba(40, 40, 50, 0.7)'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.moveTo(pivotRX, pivotY)
+  ctx.lineTo(rEndX, rEndY)
+  ctx.stroke()
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.arcTo(x + w, y, x + w, y + r, r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+  ctx.lineTo(x + r, y + h)
+  ctx.arcTo(x, y + h, x, y + h - r, r)
+  ctx.lineTo(x, y + r)
+  ctx.arcTo(x, y, x + r, y, r)
+  ctx.closePath()
 }
 
 module.exports = Renderer
