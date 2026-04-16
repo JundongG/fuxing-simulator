@@ -1,6 +1,7 @@
-// js/drive.js — 驾驶界面 v1.1（仪表盘+高品质天气）
+// js/drive.js — 驾驶界面 v1.2（仪表盘+高品质天气+性能优化）
 var GW = require('./global')
 var Renderer = require('./renderer')
+var roundRect = GW.roundRect  // 使用全局共享的 roundRect
 
 var renderer = null
 var touchAreas = []
@@ -194,27 +195,34 @@ function initWeather() {
   }
 }
 
-// === 游戏循环 ===
+// === 游戏循环（使用 requestAnimationFrame 保证流畅帧率） ===
+var lastFrameTime = 0
+
 function startLoop() {
-  if (animFrameId) clearTimeout(animFrameId)
+  if (animFrameId) cancelAnimationFrame(animFrameId)
   gameTimer = setInterval(function() {
     if (!state.paused) state.timeElapsed = Math.floor((Date.now() - startTime) / 1000)
   }, 1000)
+  lastFrameTime = Date.now()
   var loop = function() {
     if (!state.paused && !state.gameOver) update()
-    animFrameId = setTimeout(loop, 16)
+    animFrameId = requestAnimationFrame(loop)
   }
-  loop()
+  animFrameId = requestAnimationFrame(loop)
 }
 
 function stopLoop() {
-  if (animFrameId) { clearTimeout(animFrameId); animFrameId = null }
+  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null }
   if (gameTimer) { clearInterval(gameTimer); gameTimer = null }
 }
 
-// === 物理更新 ===
+// === 物理更新（基于真实时间增量） ===
 function update() {
-  var dt = 1 / 60; var prevSpeed = state.speed
+  var now = Date.now()
+  var rawDt = (now - lastFrameTime) / 1000
+  lastFrameTime = now
+  var dt = Math.min(rawDt, 1 / 30)  // 限制最大 dt，防止切后台回来跳帧
+  var prevSpeed = state.speed
   state.mileage += (state.speed / 3600) * dt * 60
   if (state.speed > state.maxSpeed) state.maxSpeed = state.speed
 
@@ -843,36 +851,29 @@ function drawControls(ctx, w, h) {
   touchAreas.push({ x: 30 + halfW, y: btnY, w: halfW, h: btnH, type: 'accel' })
 }
 
-// === 辅助函数 ===
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.lineTo(x + w - r, y)
-  ctx.arcTo(x + w, y, x + w, y + r, r)
-  ctx.lineTo(x + w, y + h - r)
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
-  ctx.lineTo(x + r, y + h)
-  ctx.arcTo(x, y + h, x, y + h - r, r)
-  ctx.lineTo(x, y + r)
-  ctx.arcTo(x, y, x + r, y, r)
-  ctx.closePath()
-}
+// roundRect 已移至 global.js 共享
 
-// === 触摸处理 ===
+// === 触摸处理（动态步长：天气影响 + 速度区间自适应） ===
 function handleTouch(x, y) {
   for (var i = 0; i < touchAreas.length; i++) {
     var a = touchAreas[i]
     if (x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h) {
       if (a.type === 'brake') {
-        targetSpeed = Math.max(0, targetSpeed - 60 * weather.brakeMultiplier)
+        // 低速时小步刹车更精准，高速时大步更实用
+        var brakeStep = state.speed > 200 ? 60 : state.speed > 100 ? 40 : 20
+        targetSpeed = Math.max(0, targetSpeed - brakeStep * weather.brakeMultiplier)
         scoreTrack.brakeCount++
+        if (wx.vibrateShort) wx.vibrateShort({ type: 'medium' })
         return
       }
       if (a.type === 'accel') {
         var limit = Math.min(currentLimit, state.sceneConfig.speedLimit || 350)
-        targetSpeed = Math.min(limit, targetSpeed + 40)
+        // 低速时加速更快，接近限速时步长减小避免超速
+        var accelStep = state.speed < 100 ? 50 : state.speed < limit - 40 ? 40 : 20
+        targetSpeed = Math.min(limit, targetSpeed + accelStep)
         targetSpeed = Math.min(380, targetSpeed)
         scoreTrack.accelCount++
+        if (wx.vibrateShort) wx.vibrateShort({ type: 'light' })
         return
       }
     }

@@ -1,4 +1,7 @@
-// js/renderer.js — Canvas 2D 视差滚动渲染引擎 v1.2（性能优化版）
+// js/renderer.js — Canvas 2D 视差滚动渲染引擎 v1.3（性能优化版）
+
+var GW = require('./global')
+var roundRect = GW.roundRect  // 使用全局共享的 roundRect
 
 function Renderer(ctx, width, height, sceneConfig) {
   this.ctx = ctx
@@ -49,6 +52,10 @@ function Renderer(ctx, width, height, sceneConfig) {
       length: 8 + Math.random() * 6
     })
   }
+
+  // === 缓存渐变对象（避免每帧重建） ===
+  this._skyGradients = {}
+  this._buildSkyGradients(height)
 }
 
 Renderer.prototype.draw = function(speed, mileage) {
@@ -102,29 +109,39 @@ Renderer.prototype.draw = function(speed, mileage) {
   if (this.config.weather === 'rain') this.drawWipers(ctx, w, h)
 }
 
+// === 预构建天空渐变（只在初始化时调用一次） ===
+Renderer.prototype._buildSkyGradients = function(h) {
+  var skyH = h * 0.35
+  var g
+
+  // 日间
+  g = this.ctx.createLinearGradient(0, 0, 0, skyH)
+  g.addColorStop(0, '#1565c0')
+  g.addColorStop(0.4, '#42a5f5')
+  g.addColorStop(1, '#90caf9')
+  this._skyGradients.day = g
+
+  // 夜间
+  g = this.ctx.createLinearGradient(0, 0, 0, skyH)
+  g.addColorStop(0, '#0a0a2e')
+  g.addColorStop(0.5, '#1a1a4e')
+  g.addColorStop(1, '#2a2a5e')
+  this._skyGradients.night = g
+
+  // 黄昏
+  g = this.ctx.createLinearGradient(0, 0, 0, skyH)
+  g.addColorStop(0, '#1a0a2e')
+  g.addColorStop(0.3, '#4a1942')
+  g.addColorStop(0.6, '#c84b31')
+  g.addColorStop(1, '#ecb365')
+  this._skyGradients.sunset = g
+}
+
 Renderer.prototype.drawSky = function(ctx, w, h, speedFactor, now) {
   var skyH = h * 0.35
+  // 使用缓存的渐变
   var time = this.config.time || 'day'
-  var gradient
-
-  if (time === 'night') {
-    gradient = ctx.createLinearGradient(0, 0, 0, skyH)
-    gradient.addColorStop(0, '#0a0a2e')
-    gradient.addColorStop(0.5, '#1a1a4e')
-    gradient.addColorStop(1, '#2a2a5e')
-  } else if (time === 'sunset') {
-    gradient = ctx.createLinearGradient(0, 0, 0, skyH)
-    gradient.addColorStop(0, '#1a0a2e')
-    gradient.addColorStop(0.3, '#4a1942')
-    gradient.addColorStop(0.6, '#c84b31')
-    gradient.addColorStop(1, '#ecb365')
-  } else {
-    gradient = ctx.createLinearGradient(0, 0, 0, skyH)
-    gradient.addColorStop(0, '#1565c0')
-    gradient.addColorStop(0.4, '#42a5f5')
-    gradient.addColorStop(1, '#90caf9')
-  }
-  ctx.fillStyle = gradient
+  ctx.fillStyle = this._skyGradients[time] || this._skyGradients.day
   ctx.fillRect(0, 0, w, skyH)
 
   // 云朵
@@ -543,18 +560,6 @@ Renderer.prototype.drawRain = function(ctx, w, h, speedFactor, now) {
   }
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.lineTo(x + w - r, y)
-  ctx.arcTo(x + w, y, x + w, y + r, r)
-  ctx.lineTo(x + w, y + h - r)
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
-  ctx.lineTo(x + r, y + h)
-  ctx.arcTo(x, y + h, x, y + h - r, r)
-  ctx.lineTo(x, y + r)
-  ctx.arcTo(x, y, x + r, y, r)
-  ctx.closePath()
-}
+// roundRect 已移至 global.js 共享
 
 module.exports = Renderer

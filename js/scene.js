@@ -1,5 +1,6 @@
-// js/scene.js — 场景详情页（纯Canvas）
+// js/scene.js — 场景详情页 v1.1（纯Canvas）
 var GW = require('./global')
+var roundRect = GW.roundRect  // 使用全局共享的 roundRect
 
 var touchAreas = []
 var scrollY = 0
@@ -200,19 +201,7 @@ function wrapText(ctx, text, maxWidth, fontSize) {
   return lines
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.lineTo(x + w - r, y)
-  ctx.arcTo(x + w, y, x + w, y + r, r)
-  ctx.lineTo(x + w, y + h - r)
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
-  ctx.lineTo(x + r, y + h)
-  ctx.arcTo(x, y + h, x, y + h - r, r)
-  ctx.lineTo(x, y + r)
-  ctx.arcTo(x, y, x + r, y, r)
-  ctx.closePath()
-}
+// roundRect 已移至 global.js 共享
 
 function handleTouch(x, y) {
   for (var i = 0; i < touchAreas.length; i++) {

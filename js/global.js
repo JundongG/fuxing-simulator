@@ -1,4 +1,20 @@
 // js/global.js — 全局状态管理器
+
+// === 通用辅助函数（消除多文件重复定义） ===
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.arcTo(x + w, y, x + w, y + r, r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+  ctx.lineTo(x + r, y + h)
+  ctx.arcTo(x, y + h, x, y + h - r, r)
+  ctx.lineTo(x, y + r)
+  ctx.arcTo(x, y, x + r, y, r)
+  ctx.closePath()
+}
+
 var GW = {
   // 系统信息
   screenWidth: 375,
@@ -33,5 +49,8 @@ var GW = {
     }
   }
 }
+
+// 导出共享工具
+GW.roundRect = roundRect
 
 module.exports = GW
