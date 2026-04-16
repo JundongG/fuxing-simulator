@@ -1,4 +1,4 @@
-// utils/audio.js — 程序化音效引擎（无需音频文件）
+// utils/audio.js — 程序化音效引擎 v1.1（空音频保护）
 
 /**
  * 使用小程序 InnerAudioContext 生成各种驾驶音效
@@ -37,15 +37,17 @@ class AudioEngine {
   // 播放短音效（用 base64 编码的极短 PCM）
   playShort(type) {
     if (!this.enabled) return
-
-    const audio = wx.createInnerAudioContext()
-    audio.src = this.getSoundSrc(type)
+    var src = this.getSoundSrc(type)
+    if (!src || typeof src !== 'string' || src.length < 10) {
+      console.warn('[Audio] 空音频源，跳过播放：', type)
+      return
+    }
+    var audio = wx.createInnerAudioContext()
+    audio.src = src
     audio.volume = this.volume
     audio.play()
-
-    // 播放完自动销毁
-    audio.onEnded(() => audio.destroy())
-    audio.onError(() => audio.destroy())
+    audio.onEnded(function() { audio.destroy() })
+    audio.onError(function() { audio.destroy() })
   }
 
   // 获取音效源（base64 编码的 WAV）

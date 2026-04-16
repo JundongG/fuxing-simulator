@@ -1,46 +1,86 @@
-// js/renderer.js — Canvas 2D 视差滚动渲染引擎 v1.1
+// js/renderer.js — Canvas 2D 视差滚动渲染引擎 v1.2（性能优化版）
 
 function Renderer(ctx, width, height, sceneConfig) {
   this.ctx = ctx
   this.w = width
   this.h = height
   this.config = sceneConfig || {}
+
   this.offsetSky = 0
   this.offsetFar = 0
   this.offsetMid = 0
   this.offsetTrack = 0
+
+  // 隧道状态（基于时间）
   this.inTunnel = false
   this.tunnelTimer = 0
+
+  // 对向列车（基于时间）
   this.oncomingTrain = null
   this.trainTimer = 0
+
   this.seed = Math.random() * 10000
-  this.wiperAngle = 0 // 雨刮器角度
+  this.wiperAngle = 0
   this.wiperDir = 1
+
+  // 缓存时间戳
+  this.lastDrawTime = Date.now()
+
+  // 预生成雪花粒子
+  this.snowParticles = []
+  for (var i = 0; i < 30; i++) {
+    this.snowParticles.push({
+      baseX: Math.random(),
+      offsetY: Math.random() * height,
+      size: 1 + Math.random(),
+      speed: 20 + Math.random() * 30,
+      phase: Math.random() * Math.PI * 2,
+      amp: 10 + Math.random() * 20
+    })
+  }
+
+  // 预生成雨滴粒子
+  this.rainParticles = []
+  for (var i = 0; i < 25; i++) {
+    this.rainParticles.push({
+      baseX: Math.random(),
+      offsetY: Math.random() * height,
+      speed: 100 + Math.random() * 80,
+      length: 8 + Math.random() * 6
+    })
+  }
 }
 
 Renderer.prototype.draw = function(speed, mileage) {
   var ctx = this.ctx
   var w = this.w
   var h = this.h
-  var speedFactor = speed / 350
+  var speedFactor = Math.min(1, speed / 380)
+
+  var now = Date.now()
+  var dt = (now - this.lastDrawTime) / 1000
+  this.lastDrawTime = now
 
   ctx.clearRect(0, 0, w, h)
 
-  var scrollBase = speedFactor * 8
+  var scrollBase = speedFactor * 8 * (dt * 60)
   this.offsetSky += scrollBase * 0.05
   this.offsetFar += scrollBase * 0.15
   this.offsetMid += scrollBase * 0.4
   this.offsetTrack += scrollBase
 
-  this.tunnelTimer++
-  if (this.tunnelTimer > 300 + Math.random() * 200) {
+  // 隧道逻辑（基于时间）
+  this.tunnelTimer += dt
+  var tunnelTargetDuration = this.inTunnel ? 5 + Math.random() * 4 : 8 + Math.random() * 6
+  if (this.tunnelTimer > tunnelTargetDuration) {
     this.inTunnel = !this.inTunnel
     this.tunnelTimer = 0
   }
 
-  this.trainTimer++
-  if (!this.oncomingTrain && this.trainTimer > 400 + Math.random() * 300) {
-    this.oncomingTrain = { x: w + 100, scale: 0.1 }
+  // 对向列车逻辑（基于时间）
+  this.trainTimer += dt
+  if (!this.oncomingTrain && this.trainTimer > 8 + Math.random() * 7) {
+    this.oncomingTrain = { x: w + 100, scale: 0.1, startTime: now }
     this.trainTimer = 0
   }
 
@@ -51,18 +91,18 @@ Renderer.prototype.draw = function(speed, mileage) {
     if (this.wiperAngle < 0) this.wiperDir = 1
   }
 
-  this.drawSky(ctx, w, h, speedFactor)
+  this.drawSky(ctx, w, h, speedFactor, now)
   this.drawFarLayer(ctx, w, h, speedFactor)
   this.drawMidLayer(ctx, w, h, speedFactor)
   this.drawTrack(ctx, w, h, speedFactor)
-  if (this.inTunnel) this.drawTunnel(ctx, w, h, speedFactor)
-  if (this.oncomingTrain) this.drawOncomingTrain(ctx, w, h, speedFactor)
+  if (this.inTunnel) this.drawTunnel(ctx, w, h, speedFactor, now)
+  if (this.oncomingTrain) this.drawOncomingTrain(ctx, w, h, speedFactor, now)
   if (speed > 150) this.drawSpeedLines(ctx, w, h, speedFactor)
   this.drawCockpit(ctx, w, h)
   if (this.config.weather === 'rain') this.drawWipers(ctx, w, h)
 }
 
-Renderer.prototype.drawSky = function(ctx, w, h, speedFactor) {
+Renderer.prototype.drawSky = function(ctx, w, h, speedFactor, now) {
   var skyH = h * 0.35
   var time = this.config.time || 'day'
   var gradient
@@ -95,17 +135,25 @@ Renderer.prototype.drawSky = function(ctx, w, h, speedFactor) {
     this.drawCloud(ctx, cx, cy, 40 + i * 10)
   }
 
-  // 夜间星星
+  // 夜间星星（使用传入的 now）
   if (time === 'night') {
     ctx.fillStyle = '#fff'
     for (var i = 0; i < 20; i++) {
       var sx = ((i * 73 + 17) % w)
       var sy = ((i * 41 + 8) % (skyH * 0.6))
-      var twinkle = Math.sin(Date.now() / 500 + i) * 0.5 + 0.5
+      var twinkle = Math.sin(now / 500 + i) * 0.5 + 0.5
       ctx.globalAlpha = twinkle * 0.8
       ctx.fillRect(sx, sy, 2, 2)
     }
     ctx.globalAlpha = 1
+  }
+
+  // 天气效果
+  var weather = this.config.weather
+  if (weather === 'snow') {
+    this.drawSnow(ctx, w, h, speedFactor, now)
+  } else if (weather === 'rain') {
+    this.drawRain(ctx, w, h, speedFactor, now)
   }
 }
 
@@ -269,7 +317,7 @@ Renderer.prototype.drawTrack = function(ctx, w, h, speedFactor) {
   ctx.stroke()
 }
 
-Renderer.prototype.drawTunnel = function(ctx, w, h, speedFactor) {
+Renderer.prototype.drawTunnel = function(ctx, w, h, speedFactor, now) {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'
   ctx.fillRect(0, 0, w, h)
   ctx.fillStyle = 'rgba(40, 35, 30, 0.8)'
@@ -278,7 +326,7 @@ Renderer.prototype.drawTunnel = function(ctx, w, h, speedFactor) {
 
   for (var i = 0; i < 5; i++) {
     var ly = ((i * h / 5 + this.offsetTrack * 50) % h)
-    var flicker = Math.sin(Date.now() / 100 + i * 2) * 0.3 + 0.7
+    var flicker = Math.sin(now / 100 + i * 2) * 0.3 + 0.7
     ctx.fillStyle = 'rgba(255, 200, 100, ' + (0.15 * flicker) + ')'
     ctx.beginPath()
     ctx.arc(w * 0.12, ly, 8, 0, Math.PI * 2)
@@ -295,15 +343,15 @@ Renderer.prototype.drawTunnel = function(ctx, w, h, speedFactor) {
   ctx.fillRect(0, 0, w, h * 0.4)
 }
 
-Renderer.prototype.drawOncomingTrain = function(ctx, w, h, speedFactor) {
+Renderer.prototype.drawOncomingTrain = function(ctx, w, h, speedFactor, now) {
   var train = this.oncomingTrain
   if (!train) return
   var cx = w / 2
   var trackY = h * 0.55
 
-  train.scale += 0.008 + speedFactor * 0.015
-  train.x = cx
-  var scale = train.scale
+  var elapsed = (now - train.startTime) / 1000
+  var scale = 0.1 + elapsed * (0.5 + speedFactor * 1.0)
+
   var trainW = 20 * scale
   var trainH = 12 * scale
   var trainY = trackY - trainH / 2 + (h - trackY) * 0.15
@@ -339,9 +387,11 @@ Renderer.prototype.drawSpeedLines = function(ctx, w, h, speedFactor) {
   var count = Math.floor(speedFactor * 20)
   ctx.strokeStyle = 'rgba(255, 255, 255, ' + (speedFactor * 0.15) + ')'
   ctx.lineWidth = 1
+  var seed = Math.floor(this.offsetTrack)
+
   for (var i = 0; i < count; i++) {
-    var x = Math.random() * w
-    var y = h * 0.3 + Math.random() * h * 0.4
+    var x = ((i * 137 + seed * 53) % w)
+    var y = h * 0.3 + ((i * 97 + seed * 17) % (h * 0.4))
     var len = 20 + speedFactor * 40
     ctx.beginPath()
     ctx.moveTo(x, y)
@@ -351,9 +401,8 @@ Renderer.prototype.drawSpeedLines = function(ctx, w, h, speedFactor) {
 }
 
 Renderer.prototype.drawCockpit = function(ctx, w, h) {
-  var cockpitH = h * 0.22 // 仪表台高度（drive.js会画仪表盘，这里只画框架）
+  var cockpitH = h * 0.22
 
-  // A柱左（加粗，更有实感）
   ctx.fillStyle = 'rgba(15, 15, 25, 0.95)'
   ctx.beginPath()
   ctx.moveTo(0, 0)
@@ -363,7 +412,6 @@ Renderer.prototype.drawCockpit = function(ctx, w, h) {
   ctx.closePath()
   ctx.fill()
 
-  // A柱左内侧阴影
   ctx.fillStyle = 'rgba(30, 30, 40, 0.5)'
   ctx.beginPath()
   ctx.moveTo(w * 0.06, 0)
@@ -373,7 +421,6 @@ Renderer.prototype.drawCockpit = function(ctx, w, h) {
   ctx.closePath()
   ctx.fill()
 
-  // A柱右
   ctx.fillStyle = 'rgba(15, 15, 25, 0.95)'
   ctx.beginPath()
   ctx.moveTo(w, 0)
@@ -392,7 +439,6 @@ Renderer.prototype.drawCockpit = function(ctx, w, h) {
   ctx.closePath()
   ctx.fill()
 
-  // 仪表台主体（drive.js会覆盖上层仪表盘）
   var dashY = h - cockpitH
   var dashGrad = ctx.createLinearGradient(0, dashY, 0, h)
   dashGrad.addColorStop(0, 'rgba(20, 20, 30, 0.95)')
@@ -408,7 +454,6 @@ Renderer.prototype.drawCockpit = function(ctx, w, h) {
   ctx.closePath()
   ctx.fill()
 
-  // 仪表台上沿高光
   ctx.strokeStyle = 'rgba(79, 195, 247, 0.15)'
   ctx.lineWidth = 1.5
   ctx.beginPath()
@@ -417,31 +462,25 @@ Renderer.prototype.drawCockpit = function(ctx, w, h) {
   ctx.quadraticCurveTo(w * 0.8, dashY - 8, w * 0.95, dashY + 10)
   ctx.stroke()
 
-  // 顶部窗框
   ctx.fillStyle = 'rgba(10, 10, 20, 0.7)'
   ctx.fillRect(0, 0, w, 4)
 
-  // 后视镜
   ctx.fillStyle = 'rgba(20, 20, 30, 0.9)'
   roundRect(ctx, w * 0.35, 25, w * 0.3, 14, 4)
   ctx.fill()
-  // 镜面
   ctx.fillStyle = 'rgba(80, 120, 170, 0.25)'
   roundRect(ctx, w * 0.36, 27, w * 0.28, 10, 3)
   ctx.fill()
-  // 镜面反光
   ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'
   ctx.fillRect(w * 0.37, 28, w * 0.12, 3)
 }
 
-// 雨刮器
 Renderer.prototype.drawWipers = function(ctx, w, h) {
   var pivotY = h * 0.35
   var pivotLX = w * 0.25
   var pivotRX = w * 0.75
   var wipeLen = w * 0.3
 
-  // 左雨刮
   var lAngle = -Math.PI * 0.3 + this.wiperAngle * Math.PI * 0.3
   var lEndX = pivotLX + Math.cos(lAngle) * wipeLen
   var lEndY = pivotY + Math.sin(lAngle) * wipeLen * 0.6
@@ -453,7 +492,6 @@ Renderer.prototype.drawWipers = function(ctx, w, h) {
   ctx.lineTo(lEndX, lEndY)
   ctx.stroke()
 
-  // 刮过区域（半透明）
   ctx.fillStyle = 'rgba(180, 210, 255, 0.03)'
   ctx.beginPath()
   ctx.moveTo(pivotLX, pivotY)
@@ -463,7 +501,6 @@ Renderer.prototype.drawWipers = function(ctx, w, h) {
   ctx.closePath()
   ctx.fill()
 
-  // 右雨刮
   var rAngle = -Math.PI * 0.7 - this.wiperAngle * Math.PI * 0.3
   var rEndX = pivotRX + Math.cos(rAngle) * wipeLen
   var rEndY = pivotY + Math.sin(rAngle) * wipeLen * 0.6
@@ -474,6 +511,36 @@ Renderer.prototype.drawWipers = function(ctx, w, h) {
   ctx.moveTo(pivotRX, pivotY)
   ctx.lineTo(rEndX, rEndY)
   ctx.stroke()
+}
+
+// 雪花效果（预生成粒子）
+Renderer.prototype.drawSnow = function(ctx, w, h, speedFactor, now) {
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
+  var timeSec = now / 1000
+  for (var i = 0; i < this.snowParticles.length; i++) {
+    var p = this.snowParticles[i]
+    var x = p.baseX * w + Math.sin(timeSec * p.speed * 0.05 + p.phase) * p.amp
+    var y = (p.offsetY + timeSec * p.speed) % h
+    ctx.beginPath()
+    ctx.arc(x, y, p.size, 0, Math.PI * 2)
+    ctx.fill()
+  }
+}
+
+// 雨滴效果（预生成粒子）
+Renderer.prototype.drawRain = function(ctx, w, h, speedFactor, now) {
+  ctx.strokeStyle = 'rgba(150, 180, 255, 0.3)'
+  ctx.lineWidth = 1
+  var timeSec = now / 1000
+  for (var i = 0; i < this.rainParticles.length; i++) {
+    var p = this.rainParticles[i]
+    var x = (p.baseX * w + timeSec * 10) % w
+    var y = (p.offsetY + timeSec * p.speed) % h
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(x - 3, y + p.length)
+    ctx.stroke()
+  }
 }
 
 function roundRect(ctx, x, y, w, h, r) {

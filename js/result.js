@@ -1,4 +1,4 @@
-// js/result.js — 结果页 v1.0（三维评分展示）
+// js/result.js — 结果页 v1.1（三维评分展示 + 排行榜）
 var GW = require('./global')
 
 var touchAreas = []
@@ -6,19 +6,30 @@ var result = null
 var char = null
 var grade = ''
 var gradeColor = ''
-var animProgress = 0 // 动画进度 0-1
+var animProgress = 0
+
+// 排行榜数据
+var ranking = []
+var myBest = null
+var rankingLoaded = false
 
 function init() {
   touchAreas = []
   result = GW.lastResult
   char = GW.selectedChar
   animProgress = 0
+  ranking = []
+  myBest = null
+  rankingLoaded = false
 
   if (result) {
     var g = calcGrade(result.score)
     grade = g.grade
     gradeColor = g.color
   }
+
+  // 加载排行榜
+  loadRanking()
 }
 
 function calcGrade(score) {
@@ -34,6 +45,23 @@ function calcSubGrade(score) {
   if (score >= 70) return { text: '良好', color: '#4fc3f7' }
   if (score >= 50) return { text: '合格', color: '#ffa726' }
   return { text: '较差', color: '#ef5350' }
+}
+
+function loadRanking() {
+  if (!wx.cloud) return
+  wx.cloud.callFunction({
+    name: 'getRanking',
+    success: function(res) {
+      if (res.result && res.result.success) {
+        ranking = res.result.data.ranking || []
+        myBest = res.result.data.myBest
+        rankingLoaded = true
+      }
+    },
+    fail: function(err) {
+      console.warn('[Result] 获取排行榜失败:', err)
+    }
+  })
 }
 
 function update() {
@@ -89,13 +117,11 @@ function draw(ctx, w, h) {
   roundRect(ctx, 30, scoreY, w - 60, 75, 16)
   ctx.fill()
 
-  // 分数（带动画）
   var displayScore = Math.round(result.score * Math.min(animProgress, 1))
   ctx.fillStyle = gradeColor
   ctx.font = 'bold 36px monospace'
   ctx.fillText(displayScore, w / 2, scoreY + 40)
 
-  // 评级徽章
   ctx.fillStyle = 'rgba(255,255,255,0.4)'
   ctx.font = '11px sans-serif'
   ctx.fillText('总得分', w / 2, scoreY + 56)
@@ -114,7 +140,6 @@ function draw(ctx, w, h) {
   roundRect(ctx, 16, triY, w - 32, 115, 12)
   ctx.fill()
 
-  // 标题
   ctx.fillStyle = 'rgba(255,255,255,0.5)'
   ctx.font = 'bold 11px sans-serif'
   ctx.textAlign = 'left'
@@ -122,9 +147,9 @@ function draw(ctx, w, h) {
   ctx.textAlign = 'center'
 
   var metrics = [
-    { label: '🚄 准点率', value: result.punctuality, icon: '准时到达' },
-    { label: '⚡ 节能率', value: result.energyScore, icon: '节能驾驶' },
-    { label: '😊 满意度', value: result.satisfaction, icon: '乘客体验' }
+    { label: '🚄 准点率', value: result.punctuality },
+    { label: '⚡ 节能率', value: result.energyScore },
+    { label: '😊 满意度', value: result.satisfaction }
   ]
 
   for (var i = 0; i < metrics.length; i++) {
@@ -132,18 +157,15 @@ function draw(ctx, w, h) {
     var mx = 16 + (w - 32) * (i + 0.5) / 3
     var my = triY + 40
 
-    // 分数
     var subGrade = calcSubGrade(m.value)
     ctx.fillStyle = subGrade.color
     ctx.font = 'bold 20px monospace'
     ctx.fillText(m.value, mx, my + 8)
 
-    // 标签
     ctx.fillStyle = 'rgba(255,255,255,0.6)'
     ctx.font = '11px sans-serif'
     ctx.fillText(m.label, mx, my + 25)
 
-    // 进度条
     var barW = (w - 32) / 3 - 20
     var barX = mx - barW / 2
     var barY = my + 32
@@ -156,15 +178,57 @@ function draw(ctx, w, h) {
     roundRect(ctx, barX, barY, Math.max(0, fillW), 4, 2)
     ctx.fill()
 
-    // 等级文字
     ctx.fillStyle = subGrade.color
     ctx.font = 'bold 10px sans-serif'
     ctx.fillText(subGrade.text, mx, barY + 18)
   }
   ctx.textAlign = 'left'
 
+  // === 排行榜（精简版） ===
+  var rankY = triY + 125
+  if (rankingLoaded && ranking.length > 0) {
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'
+    roundRect(ctx, 16, rankY, w - 32, 90, 12)
+    ctx.fill()
+
+    ctx.fillStyle = '#ffd700'
+    ctx.font = 'bold 11px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('🏆 排行榜 Top 3', w / 2, rankY + 18)
+
+    for (var i = 0; i < Math.min(3, ranking.length); i++) {
+      var item = ranking[i]
+      var ry = rankY + 32 + i * 20
+      var medal = item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : '🥉'
+
+      ctx.fillStyle = item.isMe ? 'rgba(79,195,247,0.2)' : 'rgba(255,255,255,0.03)'
+      roundRect(ctx, 24, ry - 10, w - 48, 18, 4)
+      ctx.fill()
+
+      ctx.fillStyle = item.isMe ? '#4fc3f7' : 'rgba(255,255,255,0.7)'
+      ctx.font = '10px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText(medal + ' ' + item.openid, 32, ry + 2)
+
+      ctx.textAlign = 'right'
+      ctx.fillStyle = '#4fc3f7'
+      ctx.font = 'bold 11px monospace'
+      ctx.fillText(item.score, w - 32, ry + 2)
+    }
+
+    if (myBest) {
+      ctx.textAlign = 'center'
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'
+      ctx.font = '9px sans-serif'
+      ctx.fillText('我的最佳: ' + myBest.score + '分 / ' + myBest.mileage + 'km / ' + myBest.games + '场', w / 2, rankY + 82)
+    }
+    ctx.textAlign = 'left'
+  }
+
+  var statsBaseY = rankingLoaded && ranking.length > 0 ? rankY + 100 : rankY + 10
+
   // === 统计数据 ===
-  var statsY = triY + 120
+  var statsY = statsBaseY
   ctx.fillStyle = 'rgba(255,255,255,0.06)'
   roundRect(ctx, 16, statsY, w - 32, 100, 12)
   ctx.fill()
@@ -209,7 +273,6 @@ function draw(ctx, w, h) {
   var summary = getSummary(result)
   ctx.fillStyle = 'rgba(255,255,255,0.7)'
   ctx.font = '11px sans-serif'
-  // 简单两行显示
   ctx.fillText(summary[0], 28, summaryY + 36)
   if (summary[1]) {
     ctx.fillText(summary[1], 28, summaryY + 50)
@@ -218,7 +281,6 @@ function draw(ctx, w, h) {
   // === 按钮 ===
   var btnY = h - 105
 
-  // 再来一次
   var btnGrad = ctx.createLinearGradient(16, btnY, w - 16, btnY)
   btnGrad.addColorStop(0, '#4fc3f7')
   btnGrad.addColorStop(1, '#ab47bc')
@@ -231,7 +293,6 @@ function draw(ctx, w, h) {
   ctx.fillText('🚄 再来一次', w / 2, btnY + 28)
   touchAreas.push({ x: 16, y: btnY, w: w - 32, h: 44, type: 'replay' })
 
-  // 返回首页
   ctx.fillStyle = 'rgba(255,255,255,0.12)'
   roundRect(ctx, 16, btnY + 52, w - 32, 36, 18)
   ctx.fill()
@@ -245,26 +306,14 @@ function draw(ctx, w, h) {
 
 function getSummary(r) {
   var lines = []
-
-  if (r.arrived) {
-    lines[0] = '成功将列车送达目的地'
-  } else {
-    lines[0] = '未能按时到达'
-  }
-
+  lines[0] = r.arrived ? '成功将列车送达目的地' : '未能按时到达'
   var tips = []
   if (r.signalViolations > 0) tips.push('信号违规' + r.signalViolations + '次')
   if (r.harshAccel > 2) tips.push('急加速较多')
   if (r.harshBrake > 2) tips.push('急减速较多')
   if (r.satisfaction >= 90) tips.push('乘客非常满意')
   if (r.punctuality >= 90) tips.push('准点表现优异')
-
-  if (tips.length > 0) {
-    lines[1] = tips.join('，') + '。'
-  } else {
-    lines[1] = '驾驶平稳，继续保持！'
-  }
-
+  lines[1] = tips.length > 0 ? tips.join('，') + '。' : '驾驶平稳，继续保持！'
   return lines
 }
 
